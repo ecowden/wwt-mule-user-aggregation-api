@@ -1,0 +1,18 @@
+[
+    {
+        "id": 101,
+        "fullName": "Evan Cowden",
+        "userName": "cowdene",
+        "wwtUserId": 101,
+        "enabled": true,
+        "internal": true,
+        "firstName": "Evan",
+        "lastName": "Cowden",
+        "type": "internal",
+        "wwtCreatedBy": 0,
+        "wwtLastUpdatedBy": 62407,
+        "email": "Evan.Cowden@dev.wwt.com",
+        "resetPasswordRequired": false,
+        "fndUserId": 33767
+    }
+]

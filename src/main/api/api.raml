@@ -1,0 +1,14 @@
+#%RAML 0.8
+title: Sample API
+
+/aggregates:
+  displayName: Aggregates
+  get:
+    description: |
+      get several users at once (and other bits and pieces eventually)
+    queryParameters:
+      usernames:
+        displayName: User Names
+        required: true
+        description: |
+          a comma-delimitted list of user named to fetch
