@@ -23,22 +23,28 @@ http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/jso
     </flow>
     <flow name="get:/aggregates:apiConfig">
         <set-variable variableName="usernames" value="#[message.inboundProperties.'http.query.params'.usernames.split(&quot;,&quot;)]" doc:name="Split usernames query param into `usernames` variable"/>
-        <http:request config-ref="apirouter" path="/users" method="GET" doc:name="Fetch User from Userservice" metadata:id="41f93d60-2caa-4bfd-90a7-a2c09d2ec3ef">
-            <http:request-builder>
-                <http:query-param paramName="userName" value="#[usernames[0]]"/>
-                <http:header headerName="remote_user" value="loadtestuser1"/>
-            </http:request-builder>
-        </http:request>
-        <json:json-to-object-transformer returnClass="java.lang.Object" doc:name="JSON to Object"/>
-        <choice doc:name="User found">
-            <when expression="#[payload.size() == 1]">
-                <tracking:custom-event event-name="Found User Event" doc:name="Found User Event">
-                    <tracking:meta-data key="userName" value="#[payload[0].userName]"/>
-                    <tracking:meta-data key="id" value="#[payload[0].id]"/>
-                </tracking:custom-event>
-                <json:object-to-json-transformer mimeType="application/json" doc:name="Object to JSON"/>
-                <dw:transform-message doc:name="Transform Message" metadata:id="e5e3d719-e36e-4cc4-894a-ff85ac1040ce">
-                    <dw:set-payload><![CDATA[%dw 1.0
+        <set-payload value="{
+  &quot;found&quot;: [],
+  &quot;missing&quot;: []
+}" mimeType="application/json" doc:name="Create Accumulator Payload Structure"/>
+        <foreach collection="usernames" counterVariableName="usernameCounter" doc:name="For Each Username">
+            <set-variable variableName="username" value="#[usernames[usernameCounter - 1]]" doc:name="Set Username for Iteration"/>
+            <http:request config-ref="apirouter" path="/users" method="GET" doc:name="Fetch User from Userservice" metadata:id="41f93d60-2caa-4bfd-90a7-a2c09d2ec3ef">
+                <http:request-builder>
+                    <http:query-param paramName="userName" value="#[username]"/>
+                    <http:header headerName="remote_user" value="loadtestuser1"/>
+                </http:request-builder>
+            </http:request>
+            <json:json-to-object-transformer returnClass="java.lang.Object" doc:name="JSON to Object"/>
+            <choice doc:name="User found">
+                <when expression="#[payload.size() == 1]">
+                    <tracking:custom-event event-name="Found User Event" doc:name="Found User Event">
+                        <tracking:meta-data key="userName" value="#[payload[0].userName]"/>
+                        <tracking:meta-data key="id" value="#[payload[0].id]"/>
+                    </tracking:custom-event>
+                    <json:object-to-json-transformer mimeType="application/json" doc:name="Object to JSON"/>
+                    <dw:transform-message doc:name="Transform Message" metadata:id="e5e3d719-e36e-4cc4-894a-ff85ac1040ce">
+                        <dw:set-payload><![CDATA[%dw 1.0
 %output application/json
 ---
 {
@@ -48,18 +54,20 @@ http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/jso
 	"lastName": payload[0].lastName,
 	"joinedName": payload[0].firstName ++ " " ++ payload[0].lastName
 }]]></dw:set-payload>
-                </dw:transform-message>
-            </when>
-            <when expression="#[payload.size() &gt; 1]">
-                <set-property propertyName="http.status" value="#[400]" doc:name="Too Many Users Found"/>
-                <set-payload value="{ &quot;message&quot;: &quot;Assertion failure: too many users found.&quot; }" doc:name="Set Response Payload"/>
-                <set-property propertyName="http.status" value="#[500]" doc:name="Set 500 Status Code"/>
-            </when>
-            <otherwise>
-                <set-payload value="{ &quot;message&quot;: &quot;user not found&quot; }" doc:name="Set User Not Found"/>
-                <set-property propertyName="http.status" value="#[404]" doc:name="Set 404 Status Code"/>
-            </otherwise>
-        </choice>
+                    </dw:transform-message>
+                    <logger message="#[payload]" level="INFO" doc:name="Logger"/>
+                </when>
+                <when expression="#[payload.size() &gt; 1]">
+                    <set-property propertyName="http.status" value="#[400]" doc:name="Too Many Users Found"/>
+                    <set-payload value="{ &quot;message&quot;: &quot;Assertion failure: too many users found.&quot; }" doc:name="Set Response Payload"/>
+                    <set-property propertyName="http.status" value="#[500]" doc:name="Set 500 Status Code"/>
+                </when>
+                <otherwise>
+                    <set-payload value="{ &quot;message&quot;: &quot;user not found&quot; }" doc:name="Set User Not Found"/>
+                    <set-property propertyName="http.status" value="#[404]" doc:name="Set 404 Status Code"/>
+                </otherwise>
+            </choice>
+        </foreach>
     </flow>
     <apikit:mapping-exception-strategy name="apiKitGlobalExceptionMapping">
         <apikit:mapping statusCode="404">
