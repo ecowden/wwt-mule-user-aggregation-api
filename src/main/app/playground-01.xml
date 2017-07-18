@@ -59,7 +59,6 @@ http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/jso
                     <json:json-to-object-transformer returnClass="java.lang.Object" doc:name="JSON to Object" doc:description="Need an Object, because we're adding an Object to our outer accumulator envelope, which requires working against Objects.
 "/>
                     <expression-transformer expression="#[rootMessage.payload.found.add(payload)]" doc:name="Add User to `found` Accumulator"/>
-                    <logger message="&quot;Payload in Loop: &quot; ++ #[rootMessage.payload]" level="INFO" doc:name="Logger"/>
                 </when>
                 <when expression="#[payload.size() &gt; 1]">
                     <set-property propertyName="http.status" value="#[400]" doc:name="Too Many Users Found"/>
