@@ -12,3 +12,15 @@ title: Sample API
         required: true
         description: |
           a comma-delimitted list of user named to fetch
+    responses: 
+        "200": 
+            body: 
+                application/json: 
+                    example: |
+                        {
+                          "id": 101,
+                          "username": "cowdene",
+                          "firstName": "Evan",
+                          "lastName": "Cowden",
+                          "joinedName": "Evan Cowden"
+                        }

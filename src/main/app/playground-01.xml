@@ -50,7 +50,7 @@ http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/jso
 	"joinedName": payload[0].firstName ++ " " ++ payload[0].lastName
 }]]></dw:set-payload>
                 </dw:transform-message>
-                <logger level="INFO" doc:name="Post-Logger"/>
+                <logger level="INFO" doc:name="Post-Logger" message="#[payload]"/>
             </when>
             <when expression="#[payload.size() &gt; 1]">
                 <set-property propertyName="http.status" value="#[400]" doc:name="Too Many Users Found"/>
