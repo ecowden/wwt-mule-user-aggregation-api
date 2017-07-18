@@ -35,9 +35,7 @@ http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/jso
                     <tracking:meta-data key="userName" value="#[payload[0].userName]"/>
                     <tracking:meta-data key="id" value="#[payload[0].id]"/>
                 </tracking:custom-event>
-                <logger message="#[payload]" level="INFO" doc:name="Way Pre Logger"/>
                 <json:object-to-json-transformer mimeType="application/json" doc:name="Object to JSON"/>
-                <logger message="#[payload]" level="INFO" doc:name="Pre-Logger"/>
                 <dw:transform-message doc:name="Transform Message" metadata:id="e5e3d719-e36e-4cc4-894a-ff85ac1040ce">
                     <dw:set-payload><![CDATA[%dw 1.0
 %output application/json
@@ -50,7 +48,6 @@ http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/jso
 	"joinedName": payload[0].firstName ++ " " ++ payload[0].lastName
 }]]></dw:set-payload>
                 </dw:transform-message>
-                <logger level="INFO" doc:name="Post-Logger" message="#[payload]"/>
             </when>
             <when expression="#[payload.size() &gt; 1]">
                 <set-property propertyName="http.status" value="#[400]" doc:name="Too Many Users Found"/>
