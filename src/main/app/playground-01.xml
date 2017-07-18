@@ -35,15 +35,31 @@ http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/jso
                     <tracking:meta-data key="userName" value="#[payload[0].userName]"/>
                     <tracking:meta-data key="id" value="#[payload[0].id]"/>
                 </tracking:custom-event>
-                <set-property propertyName="payload" value="#[payload[0]]" doc:name="Property"/>
+                <logger message="#[payload]" level="INFO" doc:name="Way Pre Logger"/>
+                <json:object-to-json-transformer mimeType="application/json" doc:name="Object to JSON"/>
+                <logger message="#[payload]" level="INFO" doc:name="Pre-Logger"/>
+                <dw:transform-message doc:name="Transform Message" metadata:id="e5e3d719-e36e-4cc4-894a-ff85ac1040ce">
+                    <dw:set-payload><![CDATA[%dw 1.0
+%output application/json
+---
+{
+	"id": payload[0].id,
+	"username": payload[0].userName,
+	"firstName": payload[0].firstName,
+	"lastName": payload[0].lastName,
+	"joinedName": payload[0].firstName ++ " " ++ payload[0].lastName
+}]]></dw:set-payload>
+                </dw:transform-message>
+                <logger level="INFO" doc:name="Post-Logger"/>
             </when>
             <when expression="#[payload.size() &gt; 1]">
                 <set-property propertyName="http.status" value="#[400]" doc:name="Too Many Users Found"/>
-                <set-payload value="{ &quot;message&quot;: &quot;too many users found somehow...&quot; }" doc:name="Set Response Payload"/>
+                <set-payload value="{ &quot;message&quot;: &quot;Assertion failure: too many users found.&quot; }" doc:name="Set Response Payload"/>
+                <set-property propertyName="http.status" value="#[500]" doc:name="Set 500 Status Code"/>
             </when>
             <otherwise>
-                <set-property propertyName="http.status" value="#[404]" doc:name="Set 404 Status Code"/>
                 <set-payload value="{ &quot;message&quot;: &quot;user not found&quot; }" doc:name="Set User Not Found"/>
+                <set-property propertyName="http.status" value="#[404]" doc:name="Set 404 Status Code"/>
             </otherwise>
         </choice>
     </flow>

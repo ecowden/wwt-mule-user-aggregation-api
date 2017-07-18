@@ -1,0 +1,16 @@
+{
+    "inputMessageMetadata": {
+        "messagePayload": {
+            "connectorName": "#_custom_mule_metadata_type_#",
+            "typeId": "array-of-users"
+        }
+    },
+    "outputMessageMetadata": {
+        "messagePayload": {
+            "connectorName": "#_custom_mule_metadata_type_#",
+            "typeId": "found-user"
+        }
+    },
+    "id": "92924cfa-bd4e-4118-a253-ac03c5574a32",
+    "version": "5.2.0.0"
+}
