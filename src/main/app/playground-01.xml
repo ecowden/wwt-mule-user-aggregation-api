@@ -22,9 +22,10 @@ http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/jso
         <apikit:console config-ref="apiConfig" doc:name="APIkit Console"/>
     </flow>
     <flow name="get:/aggregates:apiConfig">
-        <http:request config-ref="apirouter" path="/user" method="GET" doc:name="Fetch User from Userservice" metadata:id="41f93d60-2caa-4bfd-90a7-a2c09d2ec3ef">
+        <logger message="#[message.inboundProperties.'http.query.params'.usernames]" level="INFO" doc:name="Logger"/>
+        <http:request config-ref="apirouter" path="/users" method="GET" doc:name="Fetch User from Userservice" metadata:id="41f93d60-2caa-4bfd-90a7-a2c09d2ec3ef">
             <http:request-builder>
-                <http:query-param paramName="userName" value="loadtestuser2"/>
+                <http:query-param paramName="userName" value="#[message.inboundProperties.'http.query.params'.usernames]"/>
                 <http:header headerName="remote_user" value="loadtestuser1"/>
             </http:request-builder>
         </http:request>
