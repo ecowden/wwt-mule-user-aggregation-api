@@ -27,22 +27,23 @@ http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/jso
   &quot;found&quot;: [],
   &quot;missing&quot;: []
 }" mimeType="application/json" doc:name="Create Accumulator Payload Structure"/>
+        <json:json-to-object-transformer returnClass="java.lang.Object" doc:name="JSON Accumulator to Objects" doc:description="Need Object so we can add elements later. Could try to create Accumulator structure with Objects directly, but that requires a lot of Java stuff."/>
         <foreach collection="usernames" counterVariableName="usernameCounter" doc:name="For Each Username">
-            <set-variable variableName="username" value="#[usernames[usernameCounter - 1]]" doc:name="Set Username for Iteration"/>
+            <set-variable variableName="username" value="#[usernames[usernameCounter - 1]]" doc:name="Set `username` for Iteration"/>
             <http:request config-ref="apirouter" path="/users" method="GET" doc:name="Fetch User from Userservice" metadata:id="41f93d60-2caa-4bfd-90a7-a2c09d2ec3ef">
                 <http:request-builder>
                     <http:query-param paramName="userName" value="#[username]"/>
                     <http:header headerName="remote_user" value="loadtestuser1"/>
                 </http:request-builder>
             </http:request>
-            <json:json-to-object-transformer returnClass="java.lang.Object" doc:name="JSON to Object"/>
+            <json:json-to-object-transformer returnClass="java.lang.Object" doc:name="JSON to Object" doc:description="Need Objects so that we can check the size of the HTTP response's array."/>
             <choice doc:name="User found">
                 <when expression="#[payload.size() == 1]">
                     <tracking:custom-event event-name="Found User Event" doc:name="Found User Event">
                         <tracking:meta-data key="userName" value="#[payload[0].userName]"/>
                         <tracking:meta-data key="id" value="#[payload[0].id]"/>
                     </tracking:custom-event>
-                    <json:object-to-json-transformer mimeType="application/json" doc:name="Object to JSON"/>
+                    <json:object-to-json-transformer mimeType="application/json" doc:name="Object to JSON" doc:description="Need JSON so that we can use the &quot;Transform Message&quot; node."/>
                     <dw:transform-message doc:name="Transform Message" metadata:id="e5e3d719-e36e-4cc4-894a-ff85ac1040ce">
                         <dw:set-payload><![CDATA[%dw 1.0
 %output application/json
@@ -55,7 +56,10 @@ http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/jso
 	"joinedName": payload[0].firstName ++ " " ++ payload[0].lastName
 }]]></dw:set-payload>
                     </dw:transform-message>
-                    <logger message="#[payload]" level="INFO" doc:name="Logger"/>
+                    <json:json-to-object-transformer returnClass="java.lang.Object" doc:name="JSON to Object" doc:description="Need an Object, because we're adding an Object to our outer accumulator envelope, which requires working against Objects.
+"/>
+                    <expression-transformer expression="#[rootMessage.payload.found.add(payload)]" doc:name="Expression"/>
+                    <logger message="&quot;Payload in Loop: &quot; ++ #[rootMessage.payload]" level="INFO" doc:name="Logger"/>
                 </when>
                 <when expression="#[payload.size() &gt; 1]">
                     <set-property propertyName="http.status" value="#[400]" doc:name="Too Many Users Found"/>
@@ -68,6 +72,7 @@ http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/jso
                 </otherwise>
             </choice>
         </foreach>
+        <json:object-to-json-transformer doc:name="Object to JSON" doc:description="Need JSON, because our response type is JSON."/>
     </flow>
     <apikit:mapping-exception-strategy name="apiKitGlobalExceptionMapping">
         <apikit:mapping statusCode="404">
