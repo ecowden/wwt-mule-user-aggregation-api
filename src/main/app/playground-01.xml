@@ -58,7 +58,7 @@ http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/jso
                     </dw:transform-message>
                     <json:json-to-object-transformer returnClass="java.lang.Object" doc:name="JSON to Object" doc:description="Need an Object, because we're adding an Object to our outer accumulator envelope, which requires working against Objects.
 "/>
-                    <expression-transformer expression="#[rootMessage.payload.found.add(payload)]" doc:name="Expression"/>
+                    <expression-transformer expression="#[rootMessage.payload.found.add(payload)]" doc:name="Add User to `found` Accumulator"/>
                     <logger message="&quot;Payload in Loop: &quot; ++ #[rootMessage.payload]" level="INFO" doc:name="Logger"/>
                 </when>
                 <when expression="#[payload.size() &gt; 1]">
@@ -67,8 +67,12 @@ http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/jso
                     <set-property propertyName="http.status" value="#[500]" doc:name="Set 500 Status Code"/>
                 </when>
                 <otherwise>
-                    <set-payload value="{ &quot;message&quot;: &quot;user not found&quot; }" doc:name="Set User Not Found"/>
-                    <set-property propertyName="http.status" value="#[404]" doc:name="Set 404 Status Code"/>
+                    <set-payload value="{
+  &quot;username&quot;: &quot;#[username]&quot;
+}" doc:name="Set Missing User Payload"/>
+                    <json:json-to-object-transformer returnClass="java.lang.Object" doc:name="JSON to Object" doc:description="Need an Object, because we're adding an Object to our outer accumulator envelope, which requires working against Objects.
+"/>
+                    <expression-transformer expression="#[rootMessage.payload.missing.add(payload)]" doc:name="Add User to `missing` Accumulator"/>
                 </otherwise>
             </choice>
         </foreach>
