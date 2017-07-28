@@ -1,0 +1,25 @@
+<custom__type__definition>
+  <version>5.2.0.0</version>
+  <typeName class="org.mule.common.metadata.DefaultMetaDataKey">
+    <id>array-users-object</id>
+    <displayName>array-users-object</displayName>
+    <category>DEFAULT</category>
+    <metaDataKeyPropertiesManager>
+      <properties>
+        <org.mule.common.metadata.key.property.dsql.DsqlFromMetaDataKeyProperty/>
+      </properties>
+    </metaDataKeyPropertiesManager>
+  </typeName>
+  <metadataModel class="org.mule.common.metadata.DefaultPojoMetaDataModel">
+    <implementationClass>java.lang.Object</implementationClass>
+    <dataType>POJO</dataType>
+    <metaDataModelPropertiesManager>
+      <properties/>
+    </metaDataModelPropertiesManager>
+    <fields/>
+    <clazzName>java.lang.Object</clazzName>
+    <isInterface>false</isInterface>
+    <name>Object</name>
+    <parentNames class="linked-hash-set"/>
+  </metadataModel>
+</custom__type__definition>

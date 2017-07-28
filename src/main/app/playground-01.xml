@@ -30,12 +30,15 @@ http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/jso
         <json:json-to-object-transformer returnClass="java.lang.Object" doc:name="JSON Accumulator to Objects" doc:description="Need Object so we can add elements later. Could try to create Accumulator structure with Objects directly, but that requires a lot of Java stuff."/>
         <foreach collection="usernames" counterVariableName="usernameCounter" doc:name="For Each Username">
             <set-variable variableName="username" value="#[usernames[usernameCounter - 1]]" doc:name="Set `username` for Iteration"/>
+            <parse-template location="src/main/resources/userservice.json" doc:name="Parse Template"/>
+            <!--
             <http:request config-ref="apirouter" path="/users" method="GET" doc:name="Fetch User from Userservice" metadata:id="41f93d60-2caa-4bfd-90a7-a2c09d2ec3ef">
                 <http:request-builder>
                     <http:query-param paramName="userName" value="#[username]"/>
                     <http:header headerName="remote_user" value="loadtestuser1"/>
                 </http:request-builder>
             </http:request>
+            -->
             <json:json-to-object-transformer returnClass="java.lang.Object" doc:name="JSON to Object" doc:description="Need Objects so that we can check the size of the HTTP response's array."/>
             <choice doc:name="User found">
                 <when expression="#[payload.size() == 1]">
@@ -43,10 +46,10 @@ http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/jso
                         <tracking:meta-data key="userName" value="#[payload[0].userName]"/>
                         <tracking:meta-data key="id" value="#[payload[0].id]"/>
                     </tracking:custom-event>
-                    <json:object-to-json-transformer mimeType="application/json" doc:name="Object to JSON" doc:description="Need JSON so that we can use the &quot;Transform Message&quot; node."/>
                     <dw:transform-message doc:name="Transform Message" metadata:id="e5e3d719-e36e-4cc4-894a-ff85ac1040ce">
+                        <dw:input-payload mimeType="application/java"/>
                         <dw:set-payload><![CDATA[%dw 1.0
-%output application/json
+%output application/java
 ---
 {
 	"id": payload[0].id,
@@ -56,8 +59,6 @@ http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/jso
 	"joinedName": payload[0].firstName ++ " " ++ payload[0].lastName
 }]]></dw:set-payload>
                     </dw:transform-message>
-                    <json:json-to-object-transformer returnClass="java.lang.Object" doc:name="JSON to Object" doc:description="Need an Object, because we're adding an Object to our outer accumulator envelope, which requires working against Objects.
-"/>
                     <expression-transformer expression="#[rootMessage.payload.found.add(payload)]" doc:name="Add User to `found` Accumulator"/>
                 </when>
                 <when expression="#[payload.size() &gt; 1]">
@@ -66,11 +67,15 @@ http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/jso
                     <set-property propertyName="http.status" value="#[500]" doc:name="Set 500 Status Code"/>
                 </when>
                 <otherwise>
-                    <set-payload value="{
-  &quot;username&quot;: &quot;#[username]&quot;
-}" doc:name="Set Missing User Payload"/>
-                    <json:json-to-object-transformer returnClass="java.lang.Object" doc:name="JSON to Object" doc:description="Need an Object, because we're adding an Object to our outer accumulator envelope, which requires working against Objects.
-"/>
+                    <dw:transform-message doc:name="Transform Message">
+                        <dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+{
+	username: flowVars.username
+}]]></dw:set-payload>
+                    </dw:transform-message>
+                    
                     <expression-transformer expression="#[rootMessage.payload.missing.add(payload)]" doc:name="Add User to `missing` Accumulator"/>
                 </otherwise>
             </choice>

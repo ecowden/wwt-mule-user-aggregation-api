@@ -1,0 +1,17 @@
+[
+    {
+        "id": 19058,
+        "fullName": "LoadTest User1",
+        "userName": "loadtestuser1",
+        "wwtUserId": 19058,
+        "enabled": true,
+        "internal": true,
+        "firstName": "LoadTest",
+        "lastName": "User1",
+        "type": "internal",
+        "wwtCreatedBy": 0,
+        "wwtLastUpdatedBy": 19058,
+        "email": "loadtestuser1@dev.wwt.com",
+        "resetPasswordRequired": false
+    }
+]
